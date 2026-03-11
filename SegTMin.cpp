@@ -1,30 +1,37 @@
 #include<bits/stdc++.h>
 using namespace std;
+// int N = 4*n;
 
-//TC = O(N)
 
-void build(int low, int high,int ind, int *segT, int arr[]){
-    // if (ind >= N) cout << "Out of bounds access at index: " << ind << endl;
-    if(low == high){
-        segT[ind] = arr[low];
-        return;
+class SEGTree{
+    vector<int>segT;
+
+    public:
+    SEGTree(int n){
+        segT.resize(n);
     }
-    int mid = (low+high)>>1;
-    int ind1 = ind*2+1;
-    int ind2 = ind*2+2;
-    build(low, mid, ind1, segT, arr);
-    build(mid+1, high, ind2, segT, arr);
+    void build(int low, int high,int ind, int arr[]){
+        // if (ind >= N) cout << "Out of bounds access at index: " << ind << endl;
+        if(low == high){
+            segT[ind] = arr[low];
+            return;
+        }
+        int mid = (low+high)>>1;
+        int ind1 = ind*2+1;
+        int ind2 = ind*2+2;
+        build(low, mid, ind1, arr);
+        build(mid+1, high, ind2, arr);
 
-    segT[ind] = min(segT[ind1], segT[ind2]);
+        segT[ind] = min(segT[ind1], segT[ind2]);
 
-    return;
+        return;
 }
 
 
 //TC = O(logN)
 
 
-int query(int low, int high, int ind, int *segT, int x,int y){
+int query(int low, int high, int ind, int x,int y){
 
     if(x > high || y < low) return INT_MAX; //no overlap
 
@@ -35,26 +42,31 @@ int query(int low, int high, int ind, int *segT, int x,int y){
     int ind1 = ind*2+1;
     int ind2 = ind*2+2;
     int mid = (low+high)>>1;
-    int a1 = query(low, mid, ind1, segT, x,y);
-    int a2 = query(mid+1, high, ind2, segT, x,y);
+    int a1 = query(low, mid, ind1, x,y);
+    int a2 = query(mid+1, high, ind2, x,y);
 
     return min(a1,a2);
 }
 
 //TC = O(logN)
 
-void update(int i, int val, int ind, int low, int high, int * segT){
+void update(int i, int val, int ind, int low, int high){
     if(low == high){
         segT[ind] = val;
         return;
     }
 
     int mid = (low+high)>>1;
-    if(i <= mid) update(i, val, ind*2+1, low, mid, segT);
-    else update(i, val, ind*2+2, mid+1, high, segT);
+    if(i <= mid) update(i, val, ind*2+1, low, mid);
+    else update(i, val, ind*2+2, mid+1, high);
 
     segT[ind] = min(segT[ind*2+1], segT[ind*2+2]);
 }
+
+};
+
+//TC = O(N)
+
 
 void solve(){
     int n;
@@ -65,9 +77,9 @@ void solve(){
         cin>>arr[i];
     }
 
-    int segT[4*n]; 
+    SEGTree sg(4*n);
 
-    build(0, n-1, 0, segT, arr);
+    sg.build(0, n-1, 0, arr);
 
     int q;
     cin>>q;
@@ -79,12 +91,12 @@ void solve(){
             int l, r;
             cin>>l>>r;
     
-            cout<<query(0,n-1,0,segT,l,r)<<endl;
+            cout<<sg.query(0,n-1,0,l,r)<<endl;
         }
         else{
             int ind, val;
             cin>>ind>>val;
-            update(ind, val, 0,0,n-1, segT);
+            sg.update(ind, val, 0,0,n-1);
             cout<<"updated"<<endl;
         }
     }
